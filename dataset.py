@@ -51,6 +51,8 @@ class UCRDataset(Dataset):
         X = X.reshape((X.shape[0], X.shape[1], 1))
         y = np.asarray(y).astype(np.int32)
         y = y - np.min(y)
+        unique_ys = sorted(np.unique(y))
+        y = [unique_ys.index(yelement) for yelement in y]
         self.data = torch.tensor(X.astype(np.float32), dtype=torch.float)
         self.labels = torch.tensor(np.array(y).astype(np.int32), dtype=torch.long)
         self.nseries = X.shape[0]

@@ -81,6 +81,8 @@ class EARLIEST(nn.Module):
         for t in range(T):
             # run Base RNN on new data at step t
             x = X[t].unsqueeze(0) # Chop off current timesteps
+            # print(f"x.shape: {x.shape}")
+            # print(f"t: {t}")
             output, hidden = self.RNN(x, hidden)
 
             # predict logits for all elements in the batch
@@ -98,7 +100,10 @@ class EARLIEST(nn.Module):
             halt_points = torch.where((halt_points == -1) & (a_t == 1), time.squeeze(0), halt_points)
 
             # compute baseline
+            # print(f"output: {output}")
+            # print(f"time: {time}")
             b_t = self.BaselineNetwork(torch.cat((output, time), dim=2).detach())
+            # print(f"b_t: {b_t}")
 
             actions.append(a_t.squeeze())
             baselines.append(b_t.squeeze())
@@ -111,7 +116,11 @@ class EARLIEST(nn.Module):
         logits = torch.where(predictions == 0.0, logits, predictions).squeeze()
         halt_points = torch.where(halt_points == -1, time, halt_points).squeeze(0)
         self.locations = np.array(halt_points + 1)
+        # print(baselines[0])
+        # print(baselines[0].detach().numpy().shape)
+        # print(len(baselines))
         self.baselines = torch.stack(baselines).squeeze(1).transpose(0, 1)
+        # print(self.baselines.detach().numpy().shape)
         self.log_pi = torch.stack(log_pi).squeeze(1).squeeze(2).transpose(0, 1)
         self.halt_probs = torch.stack(halt_probs).transpose(0, 1).squeeze(2)
         self.actions = torch.stack(actions).transpose(0, 1)

@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import sys
+import os
 from model import EARLIEST
 from dataset import SyntheticTimeSeries, UCRDataset
 from torch.utils.data.sampler import SubsetRandomSampler
@@ -65,6 +66,8 @@ NHIDS = [10, 50]
 
 CONFIGURATIONS = list(product(UCR_DATASETS, LEARNING_RATES, NEPOCHS, NLAYERS, NHIDS))
 
+print([i for i in range(len(CONFIGURATIONS)) if CONFIGURATIONS[i][0] == 'Mallat'])
+
 if __name__ == "__main__":
     random_seed = 42
     results_save_path = "./results/"
@@ -80,6 +83,9 @@ if __name__ == "__main__":
     lr_str = f"{learning_rate}".replace('0.', '')
     results_filename = f"results_{dataset}_{nepochs}_{lr_str}_{nlayers}_{nhid}.txt"
     results_save_path = f"{results_save_path}{results_filename}"
+    if os.path.isfile(results_save_path):
+        print(f"Found {results_save_path}. Skipping")
+        exit()
     print(f"Running {results_save_path}")
 
     torch.manual_seed(random_seed)
@@ -140,6 +146,8 @@ if __name__ == "__main__":
     test_ix = utils.splitTrainingData(data.nseries)
     test_sampler = SubsetRandomSampler(test_ix)
     real_batch_size = min(batch_size, data.nseries)
+    if data.nseries % real_batch_size == 1:
+        real_batch_size += 1
     test_loader = torch.utils.data.DataLoader(dataset=data,
                                               batch_size=real_batch_size,
                                               sampler=test_sampler,
